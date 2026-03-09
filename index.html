@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plate 24 · Make 24 from your license plate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow:      #F5C518;
+      --yellow-dark: #C9A200;
+      --yellow-glow: rgba(245,197,24,0.35);
+      --bg:          #0e0e10;
+      --surface:     #18191c;
+      --border:      #2a2b2e;
+      --muted:       #55565a;
+      --text:        #edeef0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 52px 24px 96px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    header h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(2.2rem, 6vw, 3.4rem);
+      font-weight: 700;
+      color: var(--yellow);
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      text-shadow: 0 0 32px var(--yellow-glow);
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 7px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── State toggle ── */
+    .state-row {
+      display: flex;
+      gap: 0;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+
+    .state-btn {
+      padding: 9px 32px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .state-btn + .state-btn { border-left: 2px solid var(--border); }
+
+    .state-btn.active {
+      background: var(--yellow);
+      color: #000;
+    }
+
+    /* ── License plate ── */
+    .plate {
+      position: relative;
+      width: min(440px, 92vw);
+      padding: 16px 52px 20px;
+      background: var(--yellow);
+      border-radius: 10px;
+      box-shadow:
+        0 0 0 3px var(--yellow-dark),
+        0 16px 48px rgba(245,197,24,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.45);
+      margin-bottom: 32px;
+    }
+
+    .bolt {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 32%, #606060, #111);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.85), 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .bolt-l { left: 15px; }
+    .bolt-r { right: 15px; }
+
+    .plate-state {
+      text-align: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.55);
+      margin-bottom: 10px;
+    }
+
+    .plate-digits {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .digit-input {
+      width: 72px;
+      height: 82px;
+      background: rgba(0,0,0,0.06);
+      border: 2px solid rgba(0,0,0,0.08);
+      border-radius: 7px;
+      text-align: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--plate-ink, #1B3B6F);
+      outline: none;
+      caret-color: transparent;
+      transition: background 0.12s, border-color 0.12s;
+      -webkit-user-select: none;
+    }
+
+    .digit-input::placeholder { color: rgba(0,0,0,0.2); font-size: 2rem; }
+
+    .digit-input:focus {
+      background: rgba(0,0,0,0.11);
+      border-color: rgba(0,0,0,0.22);
+    }
+
+    .plate-tagline {
+      text-align: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 400;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.45);
+      margin-top: 10px;
+    }
+
+    /* ── Solve button ── */
+    .solve-btn {
+      padding: 14px 60px;
+      background: var(--yellow);
+      color: #000;
+      border: none;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 6px;
+      box-shadow: 0 4px 28px var(--yellow-glow);
+      transition: background 0.12s, box-shadow 0.12s, transform 0.1s;
+      margin-bottom: 44px;
+    }
+
+    .solve-btn:hover {
+      background: #ffd700;
+      box-shadow: 0 6px 36px rgba(245,197,24,0.55);
+      transform: translateY(-2px);
+    }
+    .solve-btn:active  { transform: translateY(0); box-shadow: 0 2px 14px var(--yellow-glow); }
+    .solve-btn:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+
+    /* ── Results ── */
+    .results {
+      width: min(480px, 92vw);
+    }
+
+    .results-label {
+      font-size: 0.68rem;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .no-solution {
+      padding: 32px 24px;
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.8;
+    }
+
+    .no-solution strong { color: var(--text); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--yellow);
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 10px;
+      opacity: 0;
+      animation: slidein 0.28s ease forwards;
+    }
+
+    .card:nth-child(2) { animation-delay: 0.07s; }
+    .card:nth-child(3) { animation-delay: 0.14s; }
+
+    @keyframes slidein {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .card-label {
+      font-size: 0.62rem;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .card-expr {
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .n { color: var(--yellow); }
+    .o { color: #6b6c70; }
+    .f { color: #7ecce8; }   /* sqrt, ! */
+
+    /* ── Ops legend ── */
+    .legend {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--muted);
+      line-height: 2;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 8px;
+      margin: 0 2px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 72px;
+      text-align: center;
+      color: #2e2f33;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      line-height: 2;
+    }
+
+    /* ── Shake for empty inputs ── */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-7px); }
+      40%     { transform: translateX(7px); }
+      60%     { transform: translateX(-4px); }
+      80%     { transform: translateX(4px); }
+    }
+
+    .shake { animation: shake 0.32s ease; }
+
+    /* ── Mobile ── */
+    @media (max-width: 400px) {
+      .digit-input { width: 62px; height: 72px; font-size: 2.6rem; }
+      .plate { padding: 16px 42px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Plate 24</h1>
+  <p>make 24 from your license plate digits</p>
+</header>
+
+<div class="state-row">
+  <button class="state-btn active" data-s="NJ" onclick="setPlate('NJ')">NJ</button>
+  <button class="state-btn"        data-s="NY" onclick="setPlate('NY')">NY</button>
+</div>
+
+<div class="plate" id="plate">
+  <div class="bolt bolt-l"></div>
+  <div class="bolt bolt-r"></div>
+  <div class="plate-state" id="p-state">New Jersey</div>
+  <div class="plate-digits">
+    <input class="digit-input" id="d0" type="text" inputmode="numeric" maxlength="2" placeholder="·" autocomplete="off">
+    <input class="digit-input" id="d1" type="text" inputmode="numeric" maxlength="2" placeholder="·" autocomplete="off">
+    <input class="digit-input" id="d2" type="text" inputmode="numeric" maxlength="2" placeholder="·" autocomplete="off">
+    <input class="digit-input" id="d3" type="text" inputmode="numeric" maxlength="2" placeholder="·" autocomplete="off">
+  </div>
+  <div class="plate-tagline" id="p-tag">Garden State</div>
+</div>
+
+<button class="solve-btn" id="solve-btn" onclick="handleSolve()">Solve →</button>
+
+<div class="results" id="results"></div>
+
+<div class="legend">
+  uses&nbsp;
+  <span class="badge">+</span>
+  <span class="badge">−</span>
+  <span class="badge">×</span>
+  <span class="badge">÷</span>
+  <span class="badge">mod</span>
+  <span class="badge">^</span>
+  <span class="badge">√</span>
+  <span class="badge">!</span>
+</div>
+
+<footer>
+  target = 24 &nbsp;·&nbsp; NJ &amp; NY plates (4 digits) &nbsp;·&nbsp; for driving friends
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+//  State / plate theming
+// ─────────────────────────────────────────────
+const PLATES = {
+  NJ: { state: 'New Jersey', tag: 'Garden State', ink: '#1B3B6F' },
+  NY: { state: 'New York',   tag: 'Empire State', ink: '#003DA5' },
+};
+
+function setPlate(s) {
+  document.querySelectorAll('.state-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.s === s));
+  document.getElementById('p-state').textContent = PLATES[s].state;
+  document.getElementById('p-tag').textContent   = PLATES[s].tag;
+  document.querySelectorAll('.digit-input').forEach(el =>
+    el.style.setProperty('--plate-ink', PLATES[s].ink));
+  // Apply ink color directly (CSS var on input doesn't cascade to value color in all browsers)
+  document.querySelectorAll('.digit-input').forEach(el =>
+    (el.style.color = PLATES[s].ink));
+}
+
+// ─────────────────────────────────────────────
+//  Input keyboard navigation
+// ─────────────────────────────────────────────
+const inputs = [0,1,2,3].map(i => document.getElementById(`d${i}`));
+
+inputs.forEach((inp, idx) => {
+  inp.addEventListener('focus', () => inp.select());
+
+  inp.addEventListener('input', () => {
+    const v = inp.value.replace(/\D/g, '');
+    inp.value = v ? v.slice(-1) : '';
+    if (inp.value !== '' && idx < 3) inputs[idx + 1].focus();
+  });
+
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && inp.value === '' && idx > 0) {
+      inputs[idx - 1].focus();
+      inputs[idx - 1].value = '';
+    }
+    if (e.key === 'ArrowLeft'  && idx > 0) inputs[idx - 1].focus();
+    if (e.key === 'ArrowRight' && idx < 3) inputs[idx + 1].focus();
+    if (e.key === 'Enter') handleSolve();
+  });
+});
+
+// ─────────────────────────────────────────────
+//  Solver
+// ─────────────────────────────────────────────
+const FACT = [1, 1, 2, 6, 24, 120, 720, 5040]; // 0!..7!
+const EPS  = 1e-9;
+
+// All values reachable from n via chained unary ops (depth ≤ 2)
+function preExpand(n) {
+  const queue = [{ val: n, expr: String(n), d: 0 }];
+  const seen  = new Set([n]);
+  const out   = [];
+
+  while (queue.length) {
+    const { val: v, expr: e, d } = queue.shift();
+    out.push({ val: v, expr: e });
+    if (d >= 2) continue;
+
+    // Factorial (0–7, must change value)
+    if (Number.isInteger(v) && v >= 0 && v <= 7 && FACT[v] !== v) {
+      const f = FACT[v];
+      if (!seen.has(f)) {
+        seen.add(f);
+        queue.push({ val: f, expr: e.length > 1 ? `(${e})!` : `${e}!`, d: d + 1 });
+      }
+    }
+
+    // Square root (perfect squares > 1)
+    if (v > 1 && Number.isInteger(v)) {
+      const s = Math.round(Math.sqrt(v));
+      if (s * s === v && !seen.has(s)) {
+        seen.add(s);
+        queue.push({ val: s, expr: `√(${e})`, d: d + 1 });
+      }
+    }
+  }
+  return out;
+}
+
+// All results of one binary operation on (a, b)
+function combine(a, b) {
+  const av = a.val, ae = a.expr;
+  const bv = b.val, be = b.expr;
+  if (!isFinite(av) || !isFinite(bv)) return [];
+
+  const r = [];
+
+  r.push({ val: av + bv, expr: `(${ae}+${be})` });
+  r.push({ val: av - bv, expr: `(${ae}-${be})` });
+  r.push({ val: av * bv, expr: `(${ae}×${be})` });
+
+  if (Math.abs(bv) > EPS) {
+    r.push({ val: av / bv, expr: `(${ae}÷${be})` });
+    // Integer mod: only for positive divisor
+    if (bv > 0 && Number.isInteger(av) && Number.isInteger(bv)) {
+      r.push({ val: av % bv, expr: `(${ae} mod ${be})` });
+    }
+  }
+
+  // Power: exponent must be small non-negative integer
+  if (Number.isInteger(bv) && bv >= 0 && bv <= 5) {
+    const p = Math.pow(av, bv);
+    if (isFinite(p) && Math.abs(p) < 100000) {
+      r.push({ val: p, expr: `(${ae}^${be})` });
+    }
+  }
+
+  return r.filter(x => isFinite(x.val) && !isNaN(x.val) && Math.abs(x.val) < 1e7);
+}
+
+// One level of unary ops on an intermediate result
+function unary1(val, expr) {
+  const r = [];
+  // Factorial (value must change)
+  if (Number.isInteger(val) && val >= 0 && val <= 7 && FACT[val] !== val) {
+    const fExpr = expr.startsWith('(') ? `${expr}!` : `(${expr})!`;
+    r.push({ val: FACT[val], expr: fExpr });
+  }
+  // Square root
+  if (val > 1 && Number.isInteger(val)) {
+    const s = Math.round(Math.sqrt(val));
+    if (s * s === val) r.push({ val: s, expr: `√(${expr})` });
+  }
+  return r;
+}
+
+// Recursive flat solver: pool is [{val, expr}]
+function solveFlat(pool, target, sols, seen, max) {
+  if (sols.length >= max) return;
+
+  if (pool.length === 1) {
+    if (Math.abs(pool[0].val - target) < EPS) {
+      const key = pool[0].expr.replace(/\s/g, '');
+      if (!seen.has(key)) {
+        seen.add(key);
+        sols.push(stripOuter(pool[0].expr));
+      }
+    }
+    return;
+  }
+
+  for (let i = 0; i < pool.length; i++) {
+    for (let j = i + 1; j < pool.length; j++) {
+      if (sols.length >= max) return;
+
+      const rest  = pool.filter((_, k) => k !== i && k !== j);
+      const pairs = [...combine(pool[i], pool[j]), ...combine(pool[j], pool[i])];
+
+      for (const c of pairs) {
+        solveFlat([...rest, c], target, sols, seen, max);
+        if (sols.length >= max) return;
+
+        // Also try one level of unary on the combined value
+        for (const u of unary1(c.val, c.expr)) {
+          solveFlat([...rest, u], target, sols, seen, max);
+          if (sols.length >= max) return;
+        }
+      }
+    }
+  }
+}
+
+// Main entry: expand each input, try all combinations of expansions
+function findSolutions(numbers, target = 24, max = 3) {
+  const sols = [];
+  const seen = new Set();
+  const expanded = numbers.map(preExpand);
+
+  function go(idx, current) {
+    if (sols.length >= max) return;
+    if (idx === expanded.length) {
+      solveFlat(current, target, sols, seen, max);
+      return;
+    }
+    for (const item of expanded[idx]) {
+      go(idx + 1, [...current, item]);
+      if (sols.length >= max) return;
+    }
+  }
+
+  go(0, []);
+  return sols;
+}
+
+// Remove redundant outermost parentheses
+function stripOuter(expr) {
+  while (expr.startsWith('(') && expr.endsWith(')')) {
+    let depth = 0;
+    let full  = true;
+    for (let i = 0; i < expr.length - 1; i++) {
+      if (expr[i] === '(') depth++;
+      else if (expr[i] === ')') depth--;
+      if (depth === 0) { full = false; break; }
+    }
+    if (full) expr = expr.slice(1, -1);
+    else break;
+  }
+  return expr;
+}
+
+// ─────────────────────────────────────────────
+//  Expression colorizer
+// ─────────────────────────────────────────────
+function colorize(expr) {
+  return expr
+    .replace(/√/g,           '<span class="f">√</span>')
+    .replace(/!/g,            '<span class="f">!</span>')
+    .replace(/\b(mod)\b/g,   '<span class="o">mod</span>')
+    .replace(/\d+/g,     m => `<span class="n">${m}</span>`)
+    .replace(/[+\-×÷^]/g, m => `<span class="o">${m}</span>`);
+}
+
+// ─────────────────────────────────────────────
+//  UI handlers
+// ─────────────────────────────────────────────
+function handleSolve() {
+  const vals = inputs.map(inp => inp.value.trim());
+  const missing = vals.some(v => v === '');
+
+  if (missing) {
+    inputs.forEach((inp, i) => {
+      if (vals[i] === '') {
+        inp.classList.remove('shake');
+        void inp.offsetWidth;
+        inp.classList.add('shake');
+        inp.addEventListener('animationend', () => inp.classList.remove('shake'), { once: true });
+      }
+    });
+    return;
+  }
+
+  const numbers = vals.map(Number);
+  const btn = document.getElementById('solve-btn');
+  btn.disabled = true;
+  btn.textContent = 'Solving…';
+
+  // Yield to browser so button state renders before heavy computation
+  setTimeout(() => {
+    const solutions = findSolutions(numbers);
+    renderResults(solutions, numbers);
+    btn.disabled = false;
+    btn.textContent = 'Solve →';
+  }, 16);
+}
+
+function renderResults(solutions, numbers) {
+  const el = document.getElementById('results');
+
+  if (!solutions.length) {
+    el.innerHTML = `
+      <div class="no-solution">
+        <div style="font-size:1.5rem;margin-bottom:10px;color:#3a3b3f">✕</div>
+        No solution found for <strong>${numbers.join(' · ')}</strong>
+        <div style="margin-top:8px;font-size:0.75rem">(even with √ and !)</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML =
+    `<div class="results-label">${solutions.length} solution${solutions.length > 1 ? 's' : ''} found</div>` +
+    solutions.map((expr, i) => `
+      <div class="card">
+        <div class="card-label">Solution ${i + 1}</div>
+        <div class="card-expr">${colorize(expr)}&nbsp;<span class="o">=</span>&nbsp;<span class="n">24</span></div>
+      </div>`
+    ).join('');
+}
+</script>
+</body>
+</html>
