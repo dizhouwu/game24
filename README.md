@@ -6,6 +6,6 @@ Make **24** from the 4 digits on a New Jersey or New York license plate.
 
 Supports: `+` `−` `×` `÷` `mod` `^` `√` `!`
 
-Live at **[game24-4bf.pages.dev](https://game24-4bf.pages.dev)**
+Live at **[https://plate-24.pages.dev/](https://https://plate-24.pages.dev/)**
 
 
