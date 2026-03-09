@@ -396,23 +396,25 @@ inputs.forEach((inp, idx) => {
 const FACT = [1, 1, 2, 6, 24, 120, 720, 5040]; // 0!..7!
 const EPS  = 1e-9;
 
-// All values reachable from n via chained unary ops (depth ≤ 2)
-function preExpand(n) {
-  const queue = [{ val: n, expr: String(n), d: 0 }];
-  const seen  = new Set([n]);
+// All values reachable from (val, expr) via chained √ and ! up to maxDepth.
+// Used for both bare digits (preExpand) and combined results (post-combine expansion).
+function expandUnary(val, expr, maxDepth = 2) {
+  const queue = [{ val, expr, d: 0 }];
+  const seen  = new Set([val]);
   const out   = [];
 
   while (queue.length) {
     const { val: v, expr: e, d } = queue.shift();
     out.push({ val: v, expr: e });
-    if (d >= 2) continue;
+    if (d >= maxDepth) continue;
 
     // Factorial (0–7, must change value)
     if (Number.isInteger(v) && v >= 0 && v <= 7 && FACT[v] !== v) {
       const f = FACT[v];
       if (!seen.has(f)) {
         seen.add(f);
-        queue.push({ val: f, expr: e.length > 1 ? `(${e})!` : `${e}!`, d: d + 1 });
+        const fe = e.startsWith('(') ? `${e}!` : `(${e})!`;
+        queue.push({ val: f, expr: fe, d: d + 1 });
       }
     }
 
@@ -426,6 +428,11 @@ function preExpand(n) {
     }
   }
   return out;
+}
+
+// Pre-expand a bare digit
+function preExpand(n) {
+  return expandUnary(n, String(n));
 }
 
 // All results of one binary operation on (a, b)
@@ -459,21 +466,6 @@ function combine(a, b) {
   return r.filter(x => isFinite(x.val) && !isNaN(x.val) && Math.abs(x.val) < 1e7);
 }
 
-// One level of unary ops on an intermediate result
-function unary1(val, expr) {
-  const r = [];
-  // Factorial (value must change)
-  if (Number.isInteger(val) && val >= 0 && val <= 7 && FACT[val] !== val) {
-    const fExpr = expr.startsWith('(') ? `${expr}!` : `(${expr})!`;
-    r.push({ val: FACT[val], expr: fExpr });
-  }
-  // Square root
-  if (val > 1 && Number.isInteger(val)) {
-    const s = Math.round(Math.sqrt(val));
-    if (s * s === val) r.push({ val: s, expr: `√(${expr})` });
-  }
-  return r;
-}
 
 // Recursive flat solver: pool is [{val, expr}]
 function solveFlat(pool, target, sols, seen, max) {
@@ -498,11 +490,8 @@ function solveFlat(pool, target, sols, seen, max) {
       const pairs = [...combine(pool[i], pool[j]), ...combine(pool[j], pool[i])];
 
       for (const c of pairs) {
-        solveFlat([...rest, c], target, sols, seen, max);
-        if (sols.length >= max) return;
-
-        // Also try one level of unary on the combined value
-        for (const u of unary1(c.val, c.expr)) {
+        // Try c directly, then all values reachable from c via √ and ! (depth ≤ 2)
+        for (const u of expandUnary(c.val, c.expr)) {
           solveFlat([...rest, u], target, sols, seen, max);
           if (sols.length >= max) return;
         }
